@@ -122,7 +122,21 @@ class JosClient
 
     protected static function jsonDecode($str)
     {
-        // 京东返回的数据中包含一些不规范的字符在这里过滤掉
+        $json = json_decode($str, false, 512, JSON_BIGINT_AS_STRING);
+        if ($json === null) {
+            self::replaceSpecialChars($str);
+            $json = json_decode($str, false, 512, JSON_BIGINT_AS_STRING);
+        }
+        if ($json === null) {
+            return null;
+        }
+        // 京东同一个字段有时返回int型有时返回string型，在这里统一为string
+        self::int2String($json);
+        return $json;
+    }
+
+    protected static function replaceSpecialChars(&$str)
+    {
         static $chars = [];
         if (empty($chars)) {
             for ($i = 0; $i <= 31; ++ $i) {
@@ -135,14 +149,6 @@ class JosClient
         if (0 === strpos(bin2hex($str), 'efbbbf')) {
             $str = substr($str, 3);
         }
-        
-        $json = json_decode($str, false, 512, JSON_BIGINT_AS_STRING);
-        if ($json === null) {
-            return null;
-        }
-        // 京东同一个字段有时返回int型有时返回string型，在这里统一为string
-        self::int2String($json);
-        return $json;
     }
 
     protected static function int2String(&$json)
