@@ -57,7 +57,7 @@ class JosClient
                 curl_close($ch);
                 return $reponse;
             } catch (Exception $e) {
-                if (-- $retryCount || ! $this->isRetryException($e)) {
+                if (! (-- $retryCount) || ! $this->isRetryException($e)) {
                     throw $e;
                 }
             }
@@ -97,6 +97,14 @@ class JosClient
             }
         } elseif ($e instanceof JosSdkException) {
             if ($code == JosSdkException::CODE_NET_ERROR) {
+                return true;
+            }
+            
+            if ($code == JosSdkException::CODE_PARSE_ERROR) {
+                return true;
+            }
+            
+            if($code == JosSdkException::CODE_LINK_ERROR){
                 return true;
             }
         }
